@@ -35,24 +35,24 @@
                 {id: 2, name: "Carrie" },
                 {id: 3, name: "Donovan" },
                 {id: 4, name: "Edward" },
-                {id: 6, name: "Felicity" },
-                {id: 7, name: "George" },
-                {id: 8, name: "Hannah" },
-                {id: 9, name: "Iris" },
-                {id: 10, name: "Jerry" }
+                {id: 5, name: "Felicity" },
+                {id: 6, name: "George" },
+                {id: 7, name: "Hannah" },
+                {id: 8, name: "Iris" },
+                {id: 9, name: "Jerry" }
             ],
             links: [
                 { source: 0, target: 1, value: 1 },
                 { source: 0, target: 2, value: 4 },
                 { source: 0, target: 3, value: 4 },
                 { source: 0, target: 4, value: 4 },
-                //{ source: 1, target: 5, value: 4 },
-                //{ source: 2, target: 5, value: 4 },
-                //{ source: 2, target: 5, value: 4 },
-                //{ source: 3, target: 4, value: 4 },
-                //{ source: 5, target: 8, value: 4 },
-                //{ source: 5, target: 9, value: 4 },
-                //{ source: 6, target: 7, value: 4 },
+                { source: 1, target: 5, value: 4 },
+                { source: 2, target: 5, value: 4 },
+                { source: 2, target: 5, value: 4 },
+                { source: 3, target: 4, value: 4 },
+                { source: 5, target: 8, value: 4 },
+                { source: 5, target: 9, value: 4 },
+                { source: 6, target: 7, value: 4 },
                 { source: 7, target: 8, value: 4 },
                 { source: 8, target: 9, value: 4 }
             ]
@@ -81,11 +81,16 @@
             .text(function(d) {
                 return d.name;
             })
+            .on("mouseover", function(d,i) {
+                console.log(d.name);
+                svg.selectAll(".nodes text").style("fill", "red");
+                d3.select(this).style("fill", "orange");
+            })
             .call(d3.drag()
                 .on("start", dragStarted)
                 .on("drag", dragged)
                 .on("end", dragEnded));
-            
+             
         simulation
             .nodes(dataset.nodes)
             .on("tick", ticked);
