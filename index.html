@@ -15,20 +15,32 @@
     </style>
 </head>
 <body>
+    <div>
+        <label>Enter the word:
+        <input id="word" type="text">
+        </label>
+        <button id="buttonAdd" type="button">Add</button>
+        <button id="buttonRemove" type="button">Remove</button>
+    </div>
     <script type="text/javascript">   
+        document.getElementById("buttonAdd").addEventListener("click", addWord);
+        document.getElementById("buttonRemove").addEventListener("click", removeWord);
+        var nextID = 10;
 
         //Width and height
-        var width = 800;       
+        var width = 1000;       
         var height = 600;
 
-        // creating svg
+        var transitionTime = 1000;
+
+        // Creating svg
         var svg = d3.select("body")
             .append("svg")
             .attr("width", width)
             .attr("height", height);
 
         //Artificial data
-        var dataset = {
+        dataset = {
             nodes: [
                 {id: 0, name: "Adam" },
                 {id: 1, name: "Bob" },
@@ -42,22 +54,23 @@
                 {id: 9, name: "Jerry" }
             ],
             links: [
-                { source: 0, target: 1, value: 1 },
-                { source: 0, target: 2, value: 4 },
-                { source: 0, target: 3, value: 4 },
-                { source: 0, target: 4, value: 4 },
-                { source: 1, target: 5, value: 4 },
-                { source: 2, target: 5, value: 4 },
-                { source: 2, target: 5, value: 4 },
-                { source: 3, target: 4, value: 4 },
-                { source: 5, target: 8, value: 4 },
-                { source: 5, target: 9, value: 4 },
-                { source: 6, target: 7, value: 4 },
-                { source: 7, target: 8, value: 4 },
-                { source: 8, target: 9, value: 4 }
+                { source: 0, target: 1, value: 0.5 },
+                { source: 0, target: 2, value: 0.6 },
+                { source: 0, target: 3, value: 0.5 },
+                { source: 0, target: 4, value: 0.9 },
+                { source: 1, target: 5, value: 0.8 },
+                { source: 2, target: 5, value: 0.5 },
+                { source: 2, target: 5, value: 0.5 },
+                { source: 3, target: 4, value: 0.4 },
+                { source: 5, target: 8, value: 0.2 },
+                { source: 5, target: 9, value: 0.3 },
+                { source: 6, target: 7, value: 0.1 },
+                { source: 7, target: 8, value: 0.5 },
+                { source: 8, target: 9, value: 0.9 }
             ]
         };
 
+        // Adding forces to the simulation
         var simulation = d3.forceSimulation()
             .force("link", d3.forceLink()
                 .id( function(d) { return d.id; } )
@@ -65,13 +78,16 @@
             .force("charge", d3.forceManyBody())
             .force("center", d3.forceCenter(width / 2, height / 2));
 
-        var link = svg.append("g")
-            .attr("class", "links")
-            .selectAll("line")
-            .data(dataset.links)
-            .enter()
-            .append("line");
-                
+        // Adding svg objects to edges of the graph
+        //var link = svg.append("g")
+        //    .attr("class", "links")
+        //    .selectAll("line")
+        //    .data(dataset.links)
+        //    .enter()
+        //    .append("line")
+        //    .attr("opacity", 0);
+        
+        // Adding svg objects to nodes of the graph        
         var node = svg.append("g")
             .attr("class", "nodes")
             .selectAll("text")
@@ -81,33 +97,35 @@
             .text(function(d) {
                 return d.name;
             })
-            .on("mouseover", function(d,i) {
-                console.log(d.name);
-                svg.selectAll(".nodes text").style("fill", "red");
-                d3.select(this).style("fill", "orange");
-            })
+        // Handling events: mouseover, mouseout, dragging
+            .on("mouseover", mouseover)
+            .on("mouseout", mouseout)
             .call(d3.drag()
                 .on("start", dragStarted)
                 .on("drag", dragged)
                 .on("end", dragEnded));
-             
+        
+        // Adding nodes to the simulation and running the simulation (handing ticks)
         simulation
             .nodes(dataset.nodes)
             .on("tick", ticked);
 
+        // Adding links to the simulation   
         simulation.force("link")
             .links(dataset.links);
 
+        var a = 10;
+
         function ticked() {
-            link
-                .attr("x1", function(d) { return d.source.x; })
-                .attr("y1", function(d) { return d.source.y; })
-                .attr("x2", function(d) { return d.target.x; })
-                .attr("y2", function(d) { return d.target.y; });
+            //link
+            //    .attr("x1", function(d) { return d.source.x; })
+            //    .attr("y1", function(d) { return d.source.y; })
+            //    .attr("x2", function(d) { return d.target.x; })
+            //    .attr("y2", function(d) { return d.target.y; });
 
             node
-                .attr("x", function(d) { return d.x; })
-                .attr("y", function(d) { return d.y; });
+                .attr("x", function(d) { console.log(a); return d.x; })
+                .attr("y", function(d) { if (d.name === "blab") {console.log(d.name);} return d.y; });
         }
 
         function dragStarted(d) {
@@ -127,6 +145,54 @@
             d.fy = null;
         }
 
+        function mouseover(d,i) {
+            node.transition()
+            .duration(transitionTime)
+            .style("opacity", function (d2) {
+                var edge;
+                if (d === d2) {
+                    return 1;
+                } else {
+                    for (var i = 0; i < dataset.links.length; i++) {
+                        edge = dataset.links[i];
+                        if ((edge.target === d && edge.source === d2) || (edge.source === d && edge.target === d2)) {
+                            return edge.value;
+                        }
+                    }
+                    return 0;
+                }
+            });
+        }
+
+        function mouseout(d,i) {
+            node.transition()
+                .duration(transitionTime)
+                .style("opacity", 0.8);
+        };
+
+        function addWord() {
+            var word = document.getElementById("word").value;
+            dataset.nodes.push({id: nextID, name: word});
+
+            node2 = node.data(dataset.nodes);
+            node2.enter().append("text").text(function(d) {return d.name});
+            node = svg.select("g.nodes").selectAll("text");
+
+            simulation.nodes(dataset.nodes);
+
+            node
+                .on("mouseover", mouseover)
+                .on("mouseout", mouseout)
+                .call(d3.drag()
+                    .on("start", dragStarted)
+                    .on("drag", dragged)
+                    .on("end", dragEnded));
+            nextID++;
+        };
+
+        function removeWord() {
+            var word = document.getElementById("word").value;
+        };
     </script>
 </body>
 </html>
