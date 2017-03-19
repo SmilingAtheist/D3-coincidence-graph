@@ -3,10 +3,6 @@
 <head>
     <script type="text/javascript" src="../d3/d3.js"></script>
     <style>
-        .links line {
-          stroke: red;
-        }
-
         .nodes text {
           font-family: sans-serif;
           font-size: 15px;
@@ -17,90 +13,134 @@
 <body>
     <div>
         <label>Enter the word:
-        <input id="word" type="text">
+            <input id="word" type="text">
         </label>
         <button id="buttonAdd" type="button">Add</button>
         <button id="buttonRemove" type="button">Remove</button>
     </div>
     <script type="text/javascript"> 
-    // full dataset loaded form csv files 
-    var fullDataset = {};
-    // subset of fullDataset chosen to visulize
-    var dataset = {edges: [] , nodes: []};
-    //Width and height
-    var width = 1000;       
-    var height = 600;
 
-    var transitionTime = 1000;
-
-    document.getElementById("buttonAdd").addEventListener("click", addWord);
-    document.getElementById("buttonRemove").addEventListener("click", removeWord);
-    // Creating svg
-    var svg = d3.select("body")
-        .append("svg")
-        .attr("width", width)
-        .attr("height", height);
-
-    var svg_nodes = svg.append("g")
-        .attr("class", "nodes")
-        .selectAll("text")
-        .data(dataset.nodes)
-        .enter()
-        .append("text")
-        .text(function(d) {
+        // full dataset loaded form csv files 
+        var fullDataset = {edges: [] , nodes: []};
+        // subset of fullDataset chosen to visulize
+        var dataset = {edges: [] , nodes: []};
+        // key function for binding nodes to data
+        var key = function(d) {
             return d.word;
-        });
-    // Adding forces to the simulation
-    var simulation = d3.forceSimulation()
-        .force("link", d3.forceLink()
-            .id( function(d) { return d.word; } )
-            .distance(100))
-        .force("charge", d3.forceManyBody())
-        .force("center", d3.forceCenter(width / 2, height / 2));
-    simulation
-        .nodes(dataset.nodes)
-        .on("tick", ticked);
+        };
+
+        //Width and height
+        var width = 1000;       
+        var height = 600;
+
+        var transitionTime = 500;
+        var baseOpacity = 0.8;
+
+        opacityScale = d3.scalePow()
+            .exponent(0.1)
+            .domain([1,10])
+            .range([0, 1]);
+        fontSizeScale = d3.scalePow()
+            .exponent(0.38)
+            .domain([0,1])
+            .range([0, 50]);
+
+        // handling button clicks
+        document.getElementById("buttonAdd").addEventListener("click", addWord);
+        document.getElementById("buttonRemove").addEventListener("click", removeWord);
+
+        // Creating svg
+        var svg = d3.select("body")
+            .append("svg")
+            .attr("width", width)
+            .attr("height", height);
+
+        svg.append("text")
+            .attr("id", "message")
+            .attr("x", 0)
+            .attr("y", 15)
+            .text("loading the data...");
+
+        // Adding svg objects to nodes of the graph 
+        var svg_nodes = svg.append("g")
+            .attr("class", "nodes")
+            .selectAll("text")
+            .data(dataset.nodes, key)
+            .enter()
+            .append("text")
+            .text(function(d) {
+                return d.word;
+            })
+            .style('font-size', function(d) {return fontSizeScale(d.freq)})
+             //Handling events: mouseover, mouseout, dragging
+            .on("mouseover", mouseover)
+            .on("mouseout", mouseout)
+            .call(d3.drag()
+                .on("start", dragStarted)
+                .on("drag", dragged)
+                .on("end", dragEnded));
+
+        // Adding forces to the simulation:
+        var simulation = d3.forceSimulation()
+            .force("link", d3.forceLink()
+                .id( function(d) { return d.word; } )
+                .distance(0) 
+                // similiar words are attracting each other
+                .strength( function(edge) { 
+                    return 0.05 * edge.pRatio; 
+                }))
+            .force("center", d3.forceCenter(width / 2, height / 2))
+            .force("charge", d3.forceManyBody()
+                .strength(-400));
        
-    d3.csv("nodes.csv", function(data1) { d3.csv("edges.csv", function(data2) {
+        simulation
+            .nodes(dataset.nodes)
+            .on("tick", ticked)
+            .alpha(100)
+            .alphaTarget(0)
+            .alphaDecay(0.1);
+       
+        // loading the data and adding some starting words 
+        d3.csv("nodes.csv", function(error1, data1) { d3.csv("edges.csv", function(error2, data2) {
+
+            if(error1 || error2) {
+                svg.select("#message").text("failed to load the data");
+            }
 
             fullDataset.nodes = data1;
             fullDataset.edges = data2;
 
-            // Adding svg objects to nodes of the graph        
-            //var svg_nodes = svg.append("g")
-            //    .attr("class", "nodes")
-            //    .selectAll("text")
-            //    .data(dataset.nodes)
-            //    .enter()
-            //    .append("text")
-            //    .text(function(d) {
-            //        return d.word;
-            //})
-            //// Handling events: mouseover, mouseout, dragging
-            //    .on("mouseover", mouseover)
-            //    .on("mouseout", mouseout)
-            //    .call(d3.drag()
-            //        .on("start", dragStarted)
-            //        .on("drag", dragged)
-            //        .on("end", dragEnded));
-        
-            // Adding nodes to the simulation and running the simulation (handing ticks)
+            //data successfulyy loaded
+            svg.select("#message").text("");
 
             addWord("girl");
             addWord("young");
+            addWord("robot");
+            addWord("boy");
+            addWord("magic");
+            addWord("student");
+            addWord("school");
+            addWord("powers");
+            addWord("kingdom");
+            addWord("right");
+            addWord("village");
+            addWord("earth");
+            addWord("monster");
+            addWord("feelings");
+            addWord("and");
+            addWord("who");
+            addWord("giant");
+            addWord("vampire");
+            addWord("blood");
+            addWord("ship");
+            addWord("crew");
+            addWord("king");
+            addWord("sword");
         })});
 
 
-
+        // defining functions
         function ticked() {
-            //link
-            //    .attr("x1", function(d) { return d.source.x; })
-            //    .attr("y1", function(d) { return d.source.y; })
-            //    .attr("x2", function(d) { return d.target.x; })
-            //    .attr("y2", function(d) { return d.target.y; });
-
-            console.log('a');
-
             svg_nodes
                 .attr("x", function(d) { return d.x; })
                 .attr("y", function(d) { return d.y; });
@@ -123,42 +163,75 @@
             d.fy = null;
         }
 
-        function mouseover(d,i) {
-            svg_nodes.transition()
-            .duration(transitionTime)
-            .style("opacity", function (d2) {
-                var edge;
-                if (d === d2) {
-                    return 1;
-                } else {
-                    for (var i = 0; i < dataset.edges.length; i++) {
-                        edge = dataset.edges[i];
-                        if ((edge.target === d && edge.source === d2) || (edge.source === d && edge.target === d2)) {
-                            return edge.pRatio*0.5;
-                        }
+        function mouseover(d1) {
+            var edge;
+            svg_nodes
+                .transition()
+                .duration(transitionTime)
+                .style("opacity", function (d2) {
+                    edge = getEdgeLinking(d1, d2);
+                    if (edge === "same node") {
+                        return 1;
+                    } else if (!edge) {
+                        return 0;    
+                    } else if (edge.pRatio >= 1) {
+                        return opacityScale(edge.pRatio);
+                    } else if (edge.pRatio < 1) {
+                        return opacityScale(1/edge.pRatio);
                     }
-                    return 0;
-                }
-            });
+                })
+                .style("fill", function (d2) {
+                    edge = getEdgeLinking(d1, d2);
+                    if (edge === "same node") {
+                        return "black";
+                    } else if (!edge) {
+                        return "yellow";
+                    } else if (edge.pRatio >= 1) {
+                        return "green";
+                    } else if (edge.pRatio < 1) {
+                        return "red";
+                    }                    
+                });
         }
 
-        function mouseout(d,i) {
+        function mouseout(d) {
             svg_nodes.transition()
                 .duration(transitionTime)
-                .style("opacity", 0.8);
-        };
+                .style("opacity", baseOpacity)
+                .style("fill", "blue");
+        }
 
         function addWord(w) {
             // updating nodes
-            if (document.getElementById("word").value.length > 0) {
+            var word = '';
+            var alreadyAdded = false;
+            // reading the word from input field
+            if (document.getElementById("word").value) {
                 w = document.getElementById("word").value;
             };
-            
+            // finding corresponding object in the full dataset
             for (var i = 0; i < fullDataset.nodes.length; i++) {
                 if (fullDataset.nodes[i].word === w)
                     word = fullDataset.nodes[i];
             };
-            dataset.nodes.push(word);
+            // checking whether this word is already added
+            for (var i = 0; i < dataset.nodes.length; i++) {
+                if (dataset.nodes[i].word === w)
+                    alreadyAdded = true;
+            };
+            //adding new word or outputing an error message
+            if (!word) {
+                svg.select("#message").text("wrong word");
+                return null;
+            } else if (alreadyAdded) {
+                svg.select("#message").text("word already added");
+                return null;
+            }
+            else {
+                svg.select("#message").text("");
+                dataset.nodes.push(word);
+            }
+
             //updating edges
             var edge;
             var sourceInSubset;
@@ -178,22 +251,19 @@
                     }
                 }
                 if (sourceInSubset && targetInSubset) {
-                    console.log(edge);
                     dataset.edges.push(edge);
                 };
             };
-            
-            
-            //console.log(word.word);
-            //console.log(dataset.nodes);
-            
-           
+
             //updating svg objects bound to nodes
-            var svg_nodes2 = svg.select("g.nodes").selectAll("text").data(dataset.nodes); //svg_nodes.data(dataset.nodes);
-            svg_nodes2.enter().append("text").text(function(d) {return d.word});
+            var svg_nodes2 = svg.select("g.nodes").selectAll("text").data(dataset.nodes, key); //svg_nodes.data(dataset.nodes);
+            svg_nodes2.enter().append("text")
+                .text(function(d) {return d.word})
+                .style('font-size', function(d) {return fontSizeScale(d.freq)})
+                .style("opacity", "baseOpacity");
             svg_nodes = svg.select("g.nodes").selectAll("text");
 
-            // repeating that we want to listen to events
+            //repeating that we want to listen to events
             svg_nodes 
                 .on("mouseover", mouseover)
                 .on("mouseout", mouseout)
@@ -201,15 +271,79 @@
                     .on("start", dragStarted)
                     .on("drag", dragged)
                     .on("end", dragEnded));
-            
-            //updatings the simulation
+
+            //updating the simulation
             simulation.nodes(dataset.nodes);
             simulation.force("link").links(dataset.edges);
+            simulation
+                .alpha(0.3)
+                .alphaTarget(0)
+                .alphaDecay(0.05)
+                .restart();
         };
 
-        function removeWord() {
-            var word = document.getElementById("word").value;
+        function removeWord(w) {
+            var word_index = null;
+            // reading the word from input field
+            if (document.getElementById("word").value) {
+                w = document.getElementById("word").value;
+            };
+            // finding corresponding object in the dataset
+            for (var i = 0; i < dataset.nodes.length; i++) {
+                if (dataset.nodes[i].word === w)
+                    word_index = i;
+            };
+            //removing the word or outputing an error message
+            if (!word_index) {
+                svg.select("#message").text("word already removed or never there");
+                return null;
+            }
+            else {
+                svg.select("#message").text("");
+                dataset.nodes.splice(word_index,1);
+            };
+
+            for (var i = 0; i < dataset.edges.length; i++) {
+                if (dataset.edges[i].source === w || dataset.edges[i].target === w)
+                    dataset.edges.splice(i,1);
+            };
+            //updating svg objects bound to nodes
+            var svg_nodes2 = svg.select("g.nodes").selectAll("text").data(dataset.nodes, key);
+            svg_nodes2.exit().remove()
+            svg_nodes = svg.select("g.nodes").selectAll("text");
+
+            svg_nodes 
+                .on("mouseover", mouseover)
+                .on("mouseout", mouseout)
+                .call(d3.drag()
+                    .on("start", dragStarted)
+                    .on("drag", dragged)
+                    .on("end", dragEnded));
+
+            //updating the simulation
+            simulation.nodes(dataset.nodes);
+            simulation.force("link").links(dataset.edges);
+            simulation
+                .alpha(0.3)
+                .alphaTarget(0)
+                .alphaDecay(0.05)
+                .restart();
         };
+
+        function getEdgeLinking(node1, node2) {
+            var edge;
+            if (node1 === node2) {
+                return "same node";
+            } else {
+                for (var i = 0; i < dataset.edges.length; i++) {
+                    edge = dataset.edges[i];
+                    if ((edge.target === node1 && edge.source === node2) || (edge.source === node1 && edge.target === node2)) {
+                        return edge;
+                    }
+                }
+                return null;
+            }
+        }
     </script>
 </body>
 </html>
