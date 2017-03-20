@@ -38,13 +38,13 @@
         var baseOpacity = 0.8;
 
         opacityScale = d3.scalePow()
-            .exponent(0.1)
+            .exponent(0.01)
             .domain([1,10])
             .range([0, 1]);
         fontSizeScale = d3.scalePow()
             .exponent(0.38)
             .domain([0,1])
-            .range([0, 50]);
+            .range([0, 60]);
 
         // handling button clicks
         document.getElementById("buttonAdd").addEventListener("click", addWord);
