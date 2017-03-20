@@ -88,11 +88,11 @@
                 .distance(0) 
                 // similiar words are attracting each other
                 .strength( function(edge) { 
-                    return 0.05 * edge.pRatio; 
+                    return 0.08 * edge.pRatio; 
                 }))
             .force("center", d3.forceCenter(width / 2, height / 2))
             .force("charge", d3.forceManyBody()
-                .strength(-400));
+                .strength(-1000));
        
         simulation
             .nodes(dataset.nodes)
