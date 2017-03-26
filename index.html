@@ -13,11 +13,21 @@
 </head>
 <body>
     <div>
-        <label>Enter the word:
+        <label>Enter the word w:
             <input id="word" type="text">
         </label>
+        <label>Enter the number of words k:
+            <input id="number" type="text">
+        </label>
+
         <button id="buttonAdd" type="button">Add</button>
         <button id="buttonRemove" type="button">Remove</button>
+         <button id="buttonRemoveAll" type="button">RemoveAll</button>
+    </div>
+    <div>
+        <button id="buttonAddRandom" type="button">Add k random words</button>
+        <button id="buttonAddPositive" type="button">Add k words most likely to cooccur with the word w</button>
+        <button id="buttonAddNegative" type="button">Add k words least likely to cooccur with the word w</button>
     </div>
     <script type="text/javascript"> 
 
@@ -38,7 +48,7 @@
         var baseOpacity = 0.8;
 
         opacityScale = d3.scalePow()
-            .exponent(0.001)
+            .exponent(0.0001) // <-- adjust
             .domain([1,10])
             .range([0, 1]);
         fontSizeScale = d3.scalePow()
@@ -49,6 +59,10 @@
         // handling button clicks
         document.getElementById("buttonAdd").addEventListener("click", addWord);
         document.getElementById("buttonRemove").addEventListener("click", removeWord);
+        //document.getElementById("buttonRemoveAll").addEventListener("click", removeAll);
+        document.getElementById("buttonAddRandom").addEventListener("click", addRandomWords);
+        // document.getElementById("buttonAddPositiive").addEventListener("click", addRandomWords);
+        // document.getElementById("buttonAddNegative").addEventListener("click", addRandomWords);
 
         // Creating svg
         var svg = d3.select("body")
@@ -66,6 +80,7 @@
         var svg_nodes = svg.append("g")
             .attr("class", "nodes")
             .selectAll("text")
+
             .data(dataset.nodes, key)
             .enter()
             .append("text")
@@ -88,11 +103,11 @@
                 .distance(0) 
                 // similiar words are attracting each other
                 .strength( function(edge) { 
-                    return 0.08 * edge.pRatio; 
+                    return 0.1 * edge.pRatio; 
                 }))
             .force("center", d3.forceCenter(width / 2, height / 2))
             .force("charge", d3.forceManyBody()
-                .strength(-1000));
+                .strength(-2500));
        
         simulation
             .nodes(dataset.nodes)
@@ -117,27 +132,38 @@
             addWord("girl");
             addWord("young");
             addWord("robot");
-            addWord("boy");
+            //addWord("boy");
             addWord("magic");
-            addWord("student");
-            addWord("school");
-            addWord("powers");
-            addWord("kingdom");
-            addWord("right");
-            addWord("village");
-            addWord("earth");
-            addWord("monster");
-            addWord("feelings");
-            addWord("and");
-            addWord("who");
-            addWord("giant");
-            addWord("vampire");
-            addWord("blood");
-            addWord("ship");
-            addWord("crew");
-            addWord("king");
-            addWord("sword");
-        })});
+            //addWord("student");
+            //addWord("school");
+            //addWord("powers");
+            //addWord("kingdom");
+            //addWord("right");
+            //addWord("village");
+            //addWord("earth");
+            //addWord("monster");
+            //addWord("feelings");
+            //addWord("and");
+            //addWord("who");
+            //addWord("giant");
+            //addWord("vampire");
+            //addWord("blood");
+            //addWord("ship");
+            //addWord("crew");
+            //addWord("king");
+            //addWord("sword");
+            //addWord("space");
+            //addRandomWords(2);
+            //addWord("young");
+            //addRandomWords(2);
+            //console.log(dataset.edges)
+            //addRandomWords(5);
+            //dataset.edges = [];
+            
+            //updateEdges(true);
+            console.log(dataset.nodes);
+            console.log(dataset.edges);
+            })});
 
 
         // defining functions
@@ -174,7 +200,7 @@
                     if (edge === "same node") {
                         return 1;
                     } else if (!edge) {
-                        return 0;    
+                        return 1;    
                     } else if (edge.pRatio >= 1) {
                         return opacityScale(edge.pRatio);
                     } else if (edge.pRatio < 1) {
@@ -186,7 +212,7 @@
                     if (edge === "same node") {
                         return "black";
                     } else if (!edge) {
-                        return "yellow";
+                        return "red";
                     } else if (edge.pRatio >= 1) {
                         return "green";
                     } else if (edge.pRatio < 1) {
@@ -201,8 +227,100 @@
                 .style("opacity", baseOpacity)
                 .style("fill", "blue");
         }
+/*
+        function addConditionalWords(w = '', positive = true) {
+            var k = 0;
+            var word = '';
+            // reading the input
+            if (document.getElementById("number").value) {
+                k = document.getElementById("number").value;
+            };
+            if (document.getElementById("word").value) {
+                w = document.getElementById("word").value;
+            };
+            for (var i = 0; i < fullDataset.nodes.length; i++) {
+                if (fullDataset.nodes[i].word === w)
+                    word = fullDataset.nodes[i];
+            };
+            if (!word) {
+                svg.select("#message").text("wrong word");
+                return null;
+            }
 
-        function addWord(w) {
+
+            //unchecked, start from here
+            EdgesConnectedToW = [];
+            var edge;
+            for (var i = 0; i < fullDataset.edges.length; i++) {
+                    edge = fullDataset.edges[i];
+                    if (edge.source === word) {
+                        EdgesConnectedToW.push({edge: edge, node: edge.target});
+                    }
+                    else if (edge.target === word) {
+                        EdgesConnectedToW.push({edge: edge, node: edge.source});
+                    }
+            }
+
+            EdgesConnectedToW.sort(function(a, b){return a.edge.pRatio-b.edge.pRatio});
+            
+            var numOfAdded = 0;
+            var newWord;
+            var alreadyAdded = false;
+            for (i = 0; numOfAdded < k && i < EdgesConnectedToW.length; i++) {
+                alreadyAdded = false;
+                newWord = EdgesConnectedToW.shift();
+                for (var i = 0; i < dataset.nodes.length; i++) {
+                    if (dataset.nodes[i] === newWord) {
+                        alreadyAdded = true;
+                    };
+                };
+                if (!alreadyAdded) {
+                    wordsToAdd.push(newWord)
+                    dataset.nodes.push(newWord)
+                };
+            };
+            updateEdges();
+            updateSVG();
+        };
+
+
+
+        }
+*/
+
+        function addRandomWords(k = 0) {
+            // reading the input
+            if (document.getElementById("number").value) {
+                k = document.getElementById("number").value;
+            };
+
+            if (dataset.nodes.length + +k > 200) {
+                svg.select("#message").text("too many words");
+                return null;
+            }
+
+             // choosing k random words
+            var NumWordsToAdd = [];
+            var newWord;
+            var alreadyAdded = false;
+            while ( NumWordsToAdd < k ) {
+                alreadyAdded = false;
+                newWord = fullDataset.nodes[0, getRandomInt(0, fullDataset.nodes.length)]; //0?
+                for (var i = 0; i < dataset.nodes.length; i++) {
+                    if (dataset.nodes[i] === newWord) {
+                        alreadyAdded = true;
+                    };
+                };
+                if (!alreadyAdded) {
+                    NumWordsToAdd ++;
+                    dataset.nodes.push(newWord);
+                };
+            };
+            updateEdges();
+            updateSVG();
+        };
+
+        function addWord(w = '') {
             // updating nodes
             var word = '';
             var alreadyAdded = false;
@@ -232,55 +350,8 @@
                 svg.select("#message").text("");
                 dataset.nodes.push(word);
             }
-
-            //updating edges
-            var edge;
-            var sourceInSubset;
-            var targetInSubset;
-            for (var i = 0; i < fullDataset.edges.length; i++) {
-                edge = fullDataset.edges[i];
-                sourceInSubset = false;
-                targetInSubset = false;
-                for (var j = 0; j < dataset.nodes.length; j++) {
-                    switch(dataset.nodes[j].word) {
-                        case edge.source:
-                            sourceInSubset = true
-                            break;
-                        case edge.target:
-                            targetInSubset = true
-                            break;
-                    }
-                }
-                if (sourceInSubset && targetInSubset) {
-                    dataset.edges.push(edge);
-                };
-            };
-
-            //updating svg objects bound to nodes
-            var svg_nodes2 = svg.select("g.nodes").selectAll("text").data(dataset.nodes, key); //svg_nodes.data(dataset.nodes);
-            svg_nodes2.enter().append("text")
-                .text(function(d) {return d.word})
-                .style('font-size', function(d) {return fontSizeScale(d.freq)})
-                .style("opacity", "baseOpacity");
-            svg_nodes = svg.select("g.nodes").selectAll("text");
-
-            //repeating that we want to listen to events
-            svg_nodes 
-                .on("mouseover", mouseover)
-                .on("mouseout", mouseout)
-                .call(d3.drag()
-                    .on("start", dragStarted)
-                    .on("drag", dragged)
-                    .on("end", dragEnded));
-
-            //updating the simulation
-            simulation.nodes(dataset.nodes);
-            simulation.force("link").links(dataset.edges);
-            simulation
-                .alpha(0.3)
-                .alphaTarget(0)
-                .alphaDecay(0.05)
-                .restart();
+            updateEdges();
+            updateSVG();
         };
 
         function removeWord(w) {
@@ -303,16 +374,67 @@
                 svg.select("#message").text("");
                 dataset.nodes.splice(word_index,1);
             };
-
+            // removing edges 
             for (var i = 0; i < dataset.edges.length; i++) {
                 if (dataset.edges[i].source === w || dataset.edges[i].target === w)
                     dataset.edges.splice(i,1);
             };
+            updateSVG();
+        };
+
+        function getEdgeLinking(node1, node2) {
+            var edge;
+            if (node1 === node2) {
+                return "same node";
+            } else {
+                for (var i = 0; i < dataset.edges.length; i++) {
+                    edge = dataset.edges[i];
+                    if ((edge.target === node1 && edge.source === node2) || (edge.source === node1 && edge.target === node2)) {   // not node1.word,  node2.word, 
+                        return edge;
+                    }
+                }
+                return null;
+            }
+        }
+
+        function updateEdges(u = false) {
+            //updating edges
+            var edge;
+            var sourceInSubset;
+            var targetInSubset;
+            dataset.edges = []; // why the hell does it work properly without it and refuses to work with this line of code?
+            for (var i = 0; i < fullDataset.edges.length; i++) {
+                edge = fullDataset.edges[i];
+                fullDataset.edges[i]
+                //if (edge.word) {edge = edge.word; console.log(edge)}
+                //if (u && ((edge.source === "young" && edge.target === "girl") || (edge.source === "girl" && edge.target === "young"))) {console.log(i)}
+                if (i === 118675) {console.log(u); console.log(edge.source); console.log(edge.target)}
+                sourceInSubset = false;
+                targetInSubset = false;
+                for (var j = 0; j < dataset.nodes.length; j++) {
+                    if(dataset.nodes[j].word === edge.source ||  dataset.nodes[j].word === edge.source.word) { 
+                        sourceInSubset = true;
+                    } else if (dataset.nodes[j].word === edge.target ||  dataset.nodes[j].word === edge.target.word) {
+                            targetInSubset = true;
+                    }
+                }
+                if (sourceInSubset && targetInSubset) {
+                    dataset.edges.push(edge);
+                };
+            };
+        }
+
+        function updateSVG() {
             //updating svg objects bound to nodes
-            var svg_nodes2 = svg.select("g.nodes").selectAll("text").data(dataset.nodes, key);
+            var svg_nodes2 = svg.select("g.nodes").selectAll("text").data(dataset.nodes, key); //svg_nodes.data(dataset.nodes);
             svg_nodes2.exit().remove()
+            svg_nodes2.enter().append("text")
+                .text(function(d) {return d.word})
+                .style('font-size', function(d) {return fontSizeScale(d.freq)})
+                .style("opacity", baseOpacity);
             svg_nodes = svg.select("g.nodes").selectAll("text");
 
+            //repeating that we want to listen to events
             svg_nodes 
                 .on("mouseover", mouseover)
                 .on("mouseout", mouseout)
@@ -329,22 +451,12 @@
                 .alphaTarget(0)
                 .alphaDecay(0.05)
                 .restart();
-        };
-
-        function getEdgeLinking(node1, node2) {
-            var edge;
-            if (node1 === node2) {
-                return "same node";
-            } else {
-                for (var i = 0; i < dataset.edges.length; i++) {
-                    edge = dataset.edges[i];
-                    if ((edge.target === node1 && edge.source === node2) || (edge.source === node1 && edge.target === node2)) {
-                        return edge;
-                    }
-                }
-                return null;
-            }
         }
+
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
     </script>
 </body>
 </html>
