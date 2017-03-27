@@ -225,14 +225,16 @@
                     } else if (edge.pRatio < 1) {
                         return "red";
                     }                    
-                });
+                })
+                .style("cursor", "pointer");
         }
 
         function mouseout(d) {
             svg_nodes.transition()
                 .duration(transitionTime)
                 .style("opacity", baseOpacity)
-                .style("fill", "blue");
+                .style("fill", "blue")
+                .style("cursor", "default");
         }
 
         function addConditionalWords(positive = true, w = '', k = 0) {
