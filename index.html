@@ -238,6 +238,8 @@
                 svg.select("#message").text("wrong word");
                 return null;
             }
+            svg.select("#message").text("");
+
             // finding all edges connected to the word from input
             edgesConnectedToW = [];
             var edge;
@@ -306,6 +308,7 @@
                 svg.select("#message").text("too many words");
                 return null;
             }
+            svg.select("#message").text("");
 
              // choosing k random words
             var NumWordsToAdd = 0;
@@ -480,18 +483,19 @@
                     break;
                 case 'base2':
                     removeAll();
-                    addConditionalWords(true, 'journey', 6);
-                    addConditionalWords(true, 'job', 6);
-                    addConditionalWords(true, 'family', 6);
-                    addConditionalWords(true, 'warrior', 6);
-                    addConditionalWords(true, 'relationship', 6);
+                    addConditionalWords(true, 'war', 8);
+                    addConditionalWords(true, 'warrior', 8);
+                    addConditionalWords(true, 'love', 5);
+                    addConditionalWords(true, 'family', 8);
+                    addConditionalWords(true, 'relationship', 8);
+                    removeWord('between');
                     break;
                 case 'base3':
                     removeAll();
-                    addConditionalWords(true, 'game', 10);
-                    addConditionalWords(true, 'war', 10);
-                    addConditionalWords(true, 'feelings', 10);
-                    addConditionalWords(true, 'magic', 6);
+                    addConditionalWords(true, 'cat', 10);
+                    addConditionalWords(true, 'deadly', 10);
+                    addConditionalWords(true, 'death', 10);
+                    addConditionalWords(true, 'cute', 10);
                     break;
             }
         }
