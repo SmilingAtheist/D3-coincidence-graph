@@ -31,10 +31,10 @@
     <div>
         <button id="buttonAdd" type="button">Add</button>
         <button id="buttonRemove" type="button">Remove</button>
-        <button id="buttonRemoveAll" type="button">Remove all</button>
-        <button id="buttonAddRandom" type="button">Add k random words</button>
         <button id="buttonAddPositive" type="button">Add k words most likely to cooccur with the word w</button>
         <button id="buttonAddNegative" type="button">Add k words least likely to cooccur with the word w</button>
+        <button id="buttonAddRandom" type="button">Add k random words</button>
+        <button id="buttonRemoveAll" type="button">Remove all</button>
     </div>
     <script type="text/javascript"> 
 
@@ -52,11 +52,11 @@
         var height = 600;
 
         var transitionTime = 500;
+        //var baseOpacity = 0.8;
         var baseOpacity = 0.8;
 
-        opacityScale = d3.scalePow()
-            .exponent(0.001) // <-- adjust
-            .domain([1,6])
+        opacityScale = d3.scaleLog()
+            .domain([1,5])
             .range([0, 1]);
         fontSizeScale = d3.scalePow()
             .exponent(0.38)
@@ -480,19 +480,18 @@
                     break;
                 case 'base2':
                     removeAll();
-                    addConditionalWords(true, 'blood', 6);
-                    addConditionalWords(true, 'feelings', 6);
-                    addConditionalWords(true, 'cat', 6);
-                    addConditionalWords(true, 'leader', 6);
-                    addConditionalWords(true, 'dream', 6);
+                    addConditionalWords(true, 'journey', 6);
+                    addConditionalWords(true, 'job', 6);
+                    addConditionalWords(true, 'family', 6);
+                    addConditionalWords(true, 'warrior', 6);
+                    addConditionalWords(true, 'relationship', 6);
                     break;
                 case 'base3':
                     removeAll();
-                    addConditionalWords(true, 'trouble', 6);
-                    addConditionalWords(true, 'princess', 6);
-                    addConditionalWords(true, 'soul', 6);
-                    addConditionalWords(true, 'japan', 6);
-                    addConditionalWords(true, 'future', 6);
+                    addConditionalWords(true, 'game', 10);
+                    addConditionalWords(true, 'war', 10);
+                    addConditionalWords(true, 'feelings', 10);
+                    addConditionalWords(true, 'magic', 6);
                     break;
             }
         }
