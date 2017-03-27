@@ -184,6 +184,8 @@
             if (!d3.event.active) simulation.alphaTarget(0.3).restart();
             d.fx = d.x;
             d.fy = d.y;
+
+            document.getElementById("word").value = d.word;
         }
 
         function dragged(d) {
