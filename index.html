@@ -13,18 +13,25 @@
 </head>
 <body>
     <div>
-        <label>Enter the word w:
+        <label>Word w:
             <input id="word" type="text">
         </label>
-        <label>Enter the number of words k:
+        <label>Number of words k:
             <input id="number" type="text">
         </label>
-
-        <button id="buttonAdd" type="button">Add</button>
-        <button id="buttonRemove" type="button">Remove</button>
-         <button id="buttonRemoveAll" type="button">RemoveAll</button>
+        <label>Choose a base:
+        <select id="bases">
+            <option value="base1">base1</option>
+            <option value="base2">base2</option>
+            <option value="base3">base3</option>
+        </select>
+        </label>
+         <button id="chooseBase" type="button">Choose</button>
     </div>
     <div>
+        <button id="buttonAdd" type="button">Add</button>
+        <button id="buttonRemove" type="button">Remove</button>
+        <button id="buttonRemoveAll" type="button">Remove all</button>
         <button id="buttonAddRandom" type="button">Add k random words</button>
         <button id="buttonAddPositive" type="button">Add k words most likely to cooccur with the word w</button>
         <button id="buttonAddNegative" type="button">Add k words least likely to cooccur with the word w</button>
@@ -63,6 +70,8 @@
         document.getElementById("buttonAddRandom").addEventListener("click", addRandomWords);
         document.getElementById("buttonAddPositive").addEventListener("click", addConditionalWords);
         document.getElementById("buttonAddNegative").addEventListener("click", function() {addConditionalWords(false)} );
+        document.getElementById("chooseBase").addEventListener("click", chooseBase);
+
 
         // Creating svg
         var svg = d3.select("body")
@@ -129,48 +138,9 @@
             //data successfulyy loaded
             svg.select("#message").text("");
 
-            //addWord("magic");
-            //addWord("girl");
-            //addWord("young");
-            //addWord("robot");
-            //addWord("boy");
-            
-            //addWord("student");
-            //addWord("school");
-            //addWord("powers");
-            //addWord("kingdom");
-            //addWord("right");
-            //addWord("village");
-            //addWord("earth");
-            //addWord("monster");
-            //addWord("feelings");
-            //addWord("and");
-            //addWord("who");
-            //addWord("giant");
-            //addWord("vampire");
-            //addWord("blood");
-            //addWord("ship");
-            //addWord("crew");
-            //addWord("king");
-            //addWord("sword");
-            //addWord("space");
-            //addRandomWords(2);
-            //addWord("young");
-            //addRandomWords(2);
-            //console.log(dataset.edges)
-            //addRandomWords(5);
-            //dataset.edges = [];
+            chooseBase('base1');
 
-            addConditionalWords(true, 'school', 6);
-            addConditionalWords(true, 'space', 6);
-            addConditionalWords(true, 'king', 6);
-            addConditionalWords(true, 'robot', 6);
-            addConditionalWords(true, 'vampire', 6);
-
-            //updateEdges(true);
-            //console.log(dataset.nodes);
-            //console.log(dataset.edges);
-            })});
+        })});
 
 
         // defining functions
@@ -285,7 +255,7 @@
             } else {edgesConnectedToW.sort(function(b, a){return +a.edge.pRatio - +b.edge.pRatio}); }
 
             
-            // adding words that never coocurr with w
+            // adding words that never coocur with w
             if (!positive) {
                 var added;
                 for (var i = 0; i < fullDataset.nodes.length; i++) { 
@@ -343,7 +313,7 @@
             var alreadyAdded = false;
             while ( NumWordsToAdd < k ) {
                 alreadyAdded = false;
-                newWord = fullDataset.nodes[0, getRandomInt(0, fullDataset.nodes.length)]; //0?
+                newWord = fullDataset.nodes[getRandomInt(0, fullDataset.nodes.length)]; 
                 for (var i = 0; i < dataset.nodes.length; i++) {
                     if (dataset.nodes[i] === newWord) {
                         alreadyAdded = true;
@@ -445,13 +415,10 @@
             var edge;
             var sourceInSubset;
             var targetInSubset;
-            dataset.edges = []; // why the hell does it work properly without it and refuses to work with this line of code?
+            dataset.edges = []; 
             for (var i = 0; i < fullDataset.edges.length; i++) {
                 edge = fullDataset.edges[i];
                 fullDataset.edges[i]
-                //if (edge.word) {edge = edge.word; console.log(edge)}
-                //if (u && ((edge.source === "young" && edge.target === "girl") || (edge.source === "girl" && edge.target === "young"))) {console.log(i)}
-                //if (i === 118675) {console.log(u); console.log(edge.source); console.log(edge.target)}
                 sourceInSubset = false;
                 targetInSubset = false;
                 for (var j = 0; j < dataset.nodes.length; j++) {
@@ -469,7 +436,7 @@
 
         function updateSVG() {
             //updating svg objects bound to nodes
-            var svg_nodes2 = svg.select("g.nodes").selectAll("text").data(dataset.nodes, key); //svg_nodes.data(dataset.nodes);
+            var svg_nodes2 = svg.select("g.nodes").selectAll("text").data(dataset.nodes, key);
             svg_nodes2.exit().remove()
             svg_nodes2.enter().append("text")
                 .text(function(d) {return d.word})
@@ -500,6 +467,36 @@
             return Math.floor(Math.random() * (max - min + 1)) + min;
         }
 
+        function chooseBase(base = 'base1') {
+            base = document.getElementById("bases").value;
+            console.log(base)
+            switch(base) {
+                case 'base1':
+                    removeAll();
+                    addConditionalWords(true, 'school', 6);
+                    addConditionalWords(true, 'space', 6);
+                    addConditionalWords(true, 'king', 6);
+                    addConditionalWords(true, 'robot', 6);
+                    addConditionalWords(true, 'vampire', 6);
+                    break;
+                case 'base2':
+                    removeAll();
+                    addConditionalWords(true, 'blood', 6);
+                    addConditionalWords(true, 'feelings', 6);
+                    addConditionalWords(true, 'cat', 6);
+                    addConditionalWords(true, 'leader', 6);
+                    addConditionalWords(true, 'dream', 6);
+                    break;
+                case 'base3':
+                    removeAll();
+                    addConditionalWords(true, 'trouble', 6);
+                    addConditionalWords(true, 'princess', 6);
+                    addConditionalWords(true, 'soul', 6);
+                    addConditionalWords(true, 'japan', 6);
+                    addConditionalWords(true, 'future', 6);
+                    break;
+            }
+        }
     </script>
 </body>
 </html>
