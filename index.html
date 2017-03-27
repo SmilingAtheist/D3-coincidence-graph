@@ -48,7 +48,7 @@
         var baseOpacity = 0.8;
 
         opacityScale = d3.scalePow()
-            .exponent(0.0001) // <-- adjust
+            .exponent(0.0005) // <-- adjust
             .domain([1,10])
             .range([0, 1]);
         fontSizeScale = d3.scalePow()
@@ -59,7 +59,7 @@
         // handling button clicks
         document.getElementById("buttonAdd").addEventListener("click", addWord);
         document.getElementById("buttonRemove").addEventListener("click", removeWord);
-        //document.getElementById("buttonRemoveAll").addEventListener("click", removeAll);
+        document.getElementById("buttonRemoveAll").addEventListener("click", removeAll);
         document.getElementById("buttonAddRandom").addEventListener("click", addRandomWords);
         document.getElementById("buttonAddPositive").addEventListener("click", addConditionalWords);
         document.getElementById("buttonAddNegative").addEventListener("click", function() {addConditionalWords(false)} );
@@ -129,10 +129,10 @@
             //data successfulyy loaded
             svg.select("#message").text("");
 
-            addWord("magic");
-            addWord("girl");
-            addWord("young");
-            addWord("robot");
+            //addWord("magic");
+            //addWord("girl");
+            //addWord("young");
+            //addWord("robot");
             //addWord("boy");
             
             //addWord("student");
@@ -160,7 +160,13 @@
             //console.log(dataset.edges)
             //addRandomWords(5);
             //dataset.edges = [];
-            
+
+            addConditionalWords(true, 'school', 6);
+            addConditionalWords(true, 'space', 6);
+            addConditionalWords(true, 'king', 6);
+            addConditionalWords(true, 'robot', 6);
+            addConditionalWords(true, 'vampire', 6);
+
             //updateEdges(true);
             //console.log(dataset.nodes);
             //console.log(dataset.edges);
@@ -229,8 +235,7 @@
                 .style("fill", "blue");
         }
 
-        function addConditionalWords(positive = true, w = '') {
-            var k = 0;
+        function addConditionalWords(positive = true, w = '', k = 0) {
             var word = '';
             var alreadyAdded = false;
             // reading the input
@@ -317,11 +322,6 @@
             updateSVG();
         };
 
-
-
-        
-
-
         function addRandomWords(k = 0) {
             // reading the input
             if (document.getElementById("number").value) {
@@ -334,7 +334,7 @@
             }
 
              // choosing k random words
-            var NumWordsToAdd = [];
+            var NumWordsToAdd = 0;
             var newWord;
             var alreadyAdded = false;
             while ( NumWordsToAdd < k ) {
@@ -385,6 +385,11 @@
                 dataset.nodes.push(word);
             }
             updateEdges();
+            updateSVG();
+        };
+        
+        function removeAll() {
+            dataset = {edges: [] , nodes: []};
             updateSVG();
         };
 
