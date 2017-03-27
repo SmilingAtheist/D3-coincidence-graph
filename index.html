@@ -61,8 +61,8 @@
         document.getElementById("buttonRemove").addEventListener("click", removeWord);
         //document.getElementById("buttonRemoveAll").addEventListener("click", removeAll);
         document.getElementById("buttonAddRandom").addEventListener("click", addRandomWords);
-        // document.getElementById("buttonAddPositiive").addEventListener("click", addRandomWords);
-        // document.getElementById("buttonAddNegative").addEventListener("click", addRandomWords);
+        document.getElementById("buttonAddPositive").addEventListener("click", addConditionalWords);
+        document.getElementById("buttonAddNegative").addEventListener("click", function() {addConditionalWords(false)} );
 
         // Creating svg
         var svg = d3.select("body")
@@ -129,11 +129,12 @@
             //data successfulyy loaded
             svg.select("#message").text("");
 
+            addWord("magic");
             addWord("girl");
             addWord("young");
             addWord("robot");
             //addWord("boy");
-            addWord("magic");
+            
             //addWord("student");
             //addWord("school");
             //addWord("powers");
@@ -161,8 +162,8 @@
             //dataset.edges = [];
             
             //updateEdges(true);
-            console.log(dataset.nodes);
-            console.log(dataset.edges);
+            //console.log(dataset.nodes);
+            //console.log(dataset.edges);
             })});
 
 
@@ -227,10 +228,11 @@
                 .style("opacity", baseOpacity)
                 .style("fill", "blue");
         }
-/*
-        function addConditionalWords(w = '', positive = true) {
+
+        function addConditionalWords(positive = true, w = '') {
             var k = 0;
             var word = '';
+            var alreadyAdded = false;
             // reading the input
             if (document.getElementById("number").value) {
                 k = document.getElementById("number").value;
@@ -238,45 +240,77 @@
             if (document.getElementById("word").value) {
                 w = document.getElementById("word").value;
             };
+            //adding the word from input
             for (var i = 0; i < fullDataset.nodes.length; i++) {
-                if (fullDataset.nodes[i].word === w)
-                    word = fullDataset.nodes[i];
+                if (fullDataset.nodes[i].word === w) {
+                    word = fullDataset.nodes[i].word;
+                    alreadyAdded = false;
+                    for (var j = 0; j < dataset.nodes.length; j++) {
+                        if (dataset.nodes[j] === fullDataset.nodes[i]) {
+                            alreadyAdded = true;
+                        };
+                    };
+                    if (!alreadyAdded) {
+                        dataset.nodes.push(fullDataset.nodes[i]);
+                    };
+                };
             };
             if (!word) {
                 svg.select("#message").text("wrong word");
                 return null;
             }
-
-
-            //unchecked, start from here
-            EdgesConnectedToW = [];
+            // finding all edges connected to the word from input
+            edgesConnectedToW = [];
             var edge;
             for (var i = 0; i < fullDataset.edges.length; i++) {
                     edge = fullDataset.edges[i];
-                    if (edge.source === word) {
-                        EdgesConnectedToW.push({edge: edge, node: edge.target});
+                    if (edge.source === word || edge.source.word === word) {
+                        edgesConnectedToW.push({edge: edge, node: edge.target});
                     }
-                    else if (edge.target === word) {
-                        EdgesConnectedToW.push({edge: edge, node: edge.source});
+                    else if (edge.target === word || edge.target.word === word) {
+                        edgesConnectedToW.push({edge: edge, node: edge.source});
                     }
             }
+            // sorting nodes likelihood of occurrence with w
+            if (positive) { edgesConnectedToW.sort(function(a, b){return +a.edge.pRatio - +b.edge.pRatio}); 
+            } else {edgesConnectedToW.sort(function(b, a){return +a.edge.pRatio - +b.edge.pRatio}); }
 
-            EdgesConnectedToW.sort(function(a, b){return a.edge.pRatio-b.edge.pRatio});
             
+            // adding words that never coocurr with w
+            if (!positive) {
+                var added;
+                for (var i = 0; i < fullDataset.nodes.length; i++) { 
+                    added = false;
+                    for (var j = 0; j < edgesConnectedToW.length; j++) {
+                        if (fullDataset.nodes[i].word === edgesConnectedToW[j].node || fullDataset.nodes[i].word === edgesConnectedToW[j].node.word) {
+                            added = true;
+                        } 
+                    }
+                    if (!added) {
+                        edgesConnectedToW.push({edge: null, node: fullDataset.nodes[i].word})
+                        //console.log(fullDataset.nodes[i].word)
+                    }
+                }
+            }
+
             var numOfAdded = 0;
             var newWord;
             var alreadyAdded = false;
-            for (i = 0; numOfAdded < k && i < EdgesConnectedToW.length; i++) {
+            while (numOfAdded < k && edgesConnectedToW) {
                 alreadyAdded = false;
-                newWord = EdgesConnectedToW.shift();
+                newWord = edgesConnectedToW.pop().node;
                 for (var i = 0; i < dataset.nodes.length; i++) {
-                    if (dataset.nodes[i] === newWord) {
+                    if (dataset.nodes[i] === newWord || dataset.nodes[i].word === newWord) {
                         alreadyAdded = true;
                     };
                 };
                 if (!alreadyAdded) {
-                    wordsToAdd.push(newWord)
-                    dataset.nodes.push(newWord)
+                    numOfAdded ++;
+                    for (var i = 0; i < fullDataset.nodes.length; i++) {
+                        if (fullDataset.nodes[i] === newWord || fullDataset.nodes[i].word === newWord) {
+                            dataset.nodes.push(fullDataset.nodes[i]);
+                        };
+                    };
                 };
             };
             updateEdges();
@@ -285,8 +319,8 @@
 
 
 
-        }
-*/
+        
+
 
         function addRandomWords(k = 0) {
             // reading the input
@@ -366,7 +400,7 @@
                     word_index = i;
             };
             //removing the word or outputing an error message
-            if (!word_index) {
+            if (word_index === null) {
                 svg.select("#message").text("word already removed or never there");
                 return null;
             }
@@ -408,7 +442,7 @@
                 fullDataset.edges[i]
                 //if (edge.word) {edge = edge.word; console.log(edge)}
                 //if (u && ((edge.source === "young" && edge.target === "girl") || (edge.source === "girl" && edge.target === "young"))) {console.log(i)}
-                if (i === 118675) {console.log(u); console.log(edge.source); console.log(edge.target)}
+                //if (i === 118675) {console.log(u); console.log(edge.source); console.log(edge.target)}
                 sourceInSubset = false;
                 targetInSubset = false;
                 for (var j = 0; j < dataset.nodes.length; j++) {
