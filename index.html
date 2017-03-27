@@ -21,9 +21,9 @@
         </label>
         <label>Choose a base:
         <select id="bases">
-            <option value="base1">base1</option>
-            <option value="base2">base2</option>
-            <option value="base3">base3</option>
+            <option value="base1">1</option>
+            <option value="base2">2</option>
+            <option value="base3">3</option>
         </select>
         </label>
          <button id="chooseBase" type="button">Choose</button>
@@ -55,8 +55,8 @@
         var baseOpacity = 0.8;
 
         opacityScale = d3.scalePow()
-            .exponent(0.0005) // <-- adjust
-            .domain([1,10])
+            .exponent(0.001) // <-- adjust
+            .domain([1,6])
             .range([0, 1]);
         fontSizeScale = d3.scalePow()
             .exponent(0.38)
@@ -469,7 +469,6 @@
 
         function chooseBase(base = 'base1') {
             base = document.getElementById("bases").value;
-            console.log(base)
             switch(base) {
                 case 'base1':
                     removeAll();
